@@ -42,6 +42,11 @@ class Course < ActiveRecord::Base
   has_many :faculty_assignments
   has_many :faculty, :through => :faculty_assignments, :source => :user
 
+
+  has_many :teaching_assistant_assignments
+  has_many :teaching_assistant, :through => :teaching_assistant_assignments, :source => :user
+
+
   has_many :registrations
   has_many :registered_students, :through => :registrations, :source => :user
 
@@ -55,6 +60,7 @@ class Course < ActiveRecord::Base
 
   validates_presence_of :semester, :year, :mini, :name
   validate :validate_faculty_assignments
+  validate :validate_teaching_assistant_assignments
 
   versioned
   belongs_to :updated_by, :class_name => 'User', :foreign_key => 'updated_by_user_id'
@@ -64,12 +70,14 @@ class Course < ActiveRecord::Base
   # :faculty_assignments_override is a temporary variable that is used to do validation of the strings (to verify
   # that they are people in the system) and then to save the people in the faculty association.
   attr_accessor :faculty_assignments_override
+  attr_accessor :teaching_assistant_assignments_override
+
 
   attr_accessible :course_number_id, :name, :number, :semester, :mini, :primary_faculty_label,
                   :secondary_faculty_label, :twiki_url, :remind_about_effort, :short_name, :year,
                   :peer_evaluation_first_email, :peer_evaluation_second_email,
                   :curriculum_url, :configure_course_twiki,
-                  :faculty_assignments_override
+                  :faculty_assignments_override, :teaching_assistant_assignments_override
 
   include PeopleInACollection
 
@@ -77,6 +85,11 @@ class Course < ActiveRecord::Base
     validate_members :faculty_assignments_override
   end
 
+
+
+  def validate_teaching_assistant_assignments
+    validate_members :teaching_assistant_assignments_override
+  end
 #  def to_param
 #    display_course_name
 #  end
@@ -120,7 +133,7 @@ class Course < ActiveRecord::Base
   end
 
   #before_validation :set_updated_by_user -- this needs to be done by the controller
-  before_save :strip_whitespaces, :update_email_address, :need_to_update_google_list?, :update_faculty
+  before_save :strip_whitespaces, :update_email_address, :need_to_update_google_list?, :update_faculty , :update_teaching_assistant
   after_save :update_distribution_list
 
   scope :unique_course_numbers_and_names_by_number, :select => "DISTINCT number, name", :order => 'number ASC'
@@ -232,6 +245,20 @@ class Course < ActiveRecord::Base
     raise "Error converting faculty_assignments_override to IDs!" if list.include?(nil)
     self.faculty = list
     faculty_assignments_override = nil
+    self.updating_email = true
+  end
+
+  #When modifying validate_teaching_assistant or update_teaching_assistant, modify the same code in team.rb
+  #Todo - move to a higher class or try as a mixin
+  def update_teaching_assistant
+    return "" if teaching_assistant_assignments_override.nil?
+    self.teaching_assistant = []
+
+    self.teaching_assistant_assignments_override = teaching_assistant_assignments_override.select { |name| name != nil && name.strip != "" }
+    list = map_member_strings_to_users(self. teaching_assistant_assignments_override)
+    raise "Error converting f teaching_assistant_assignments_override to IDs!" if list.include?(nil)
+    self.teaching_assistant = list
+    teaching_assistant_assignments_override = nil
     self.updating_email = true
   end
 

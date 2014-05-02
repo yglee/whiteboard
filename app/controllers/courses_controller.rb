@@ -161,6 +161,8 @@ class CoursesController < ApplicationController
     end
 
     params[:course][:faculty_assignments_override] = params[:teachers]
+    params[:course][:teaching_assistant_assignments_override] = params[:teachingassistants]
+
     respond_to do |format|
       @course.updated_by_user_id = current_user.id if current_user
       @course.attributes = params[:course]

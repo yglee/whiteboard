@@ -2,7 +2,7 @@
    #Parameters: member_label, name
    member_label = local_assigns[:member_label].nil? ? "Person" : local_assigns[:member_label]
    person = local_assigns[:person]
-   collection_name = member_label.downcase + "s" #We don't do pluralize as this is tough to reproduce in javascript
+   collection_name = member_label.downcase.gsub(/\s+/, '') + "s" #We don't do pluralize as this is tough to reproduce in javascript
 %>
 
 <div class="person_in_a_collection">
