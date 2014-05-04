@@ -85,10 +85,23 @@ class Course < ActiveRecord::Base
     validate_members :faculty_assignments_override
   end
 
-
+  def validate_ta_constraints(ta_list)
+    ta_list_users = send(ta_list)
+    return "" if ta_list_users.nil?
+    ta_list_users_array=  ta_list_users.split(',')
+    ta_list_users_array.each_with_index do |user, index|
+      ta_user = User.find_by_human_name(user)
+      puts ta_user.human_name
+      puts registered_students_or_on_teams
+      if registered_students_or_on_teams.include?(ta_user)
+        self.errors.add(:base," Person " + ta_list_users_array[index] = "is a registered student in this course")
+      end
+    end
+  end
 
   def validate_teaching_assistant_assignments
     validate_members :teaching_assistant_assignments_override
+    validate_ta_constraints :teaching_assistant_assignments_override
   end
 #  def to_param
 #    display_course_name

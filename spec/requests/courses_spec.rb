@@ -65,7 +65,6 @@ describe "courses" do
        click_link "Edit"
        page.should have_content("Add a teaching assistant")
        click_link "Add a teaching assistant"
-       puts page.body
      end
 
    end
