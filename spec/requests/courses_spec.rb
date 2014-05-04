@@ -30,13 +30,45 @@ describe "courses" do
 
   end
 
-  context "all courses" do
+   context "all courses" do
     it 'renders all courses' do
       click_link "Courses"
       page.should have_content("All Courses")
       page.should have_link("See current semester")
    end
 
-  end
+   end
+
+   context "Teaching assistant in course page " do
+     before do
+       @ta= FactoryGirl.create(:student_ta_user)
+       @faculty = FactoryGirl.create(:faculty_frank_user)
+
+       login_with_oauth @faculty
+       @course = FactoryGirl.create(:fse)
+       @faculty_assignment = FactoryGirl.create(:faculty_assignment, :course_id => @course.id,
+                                                :user_id => @faculty.id)
+       @ta_assignment = FactoryGirl.create(:ta_assignment, :course_id => @course.id,
+                                           :user_id => @ta.id)
+     end
+
+     it "Show Teaching assistants in course page" do
+       click_link "Courses"
+       click_link "Foundations of Software Engineering"
+       page.should have_content("Teaching Assistants")
+       page.should have_content("Student TA")
+     end
+
+     it "Able to add Teaching assistant to a course " do
+       click_link "Courses"
+       click_link "Foundations of Software Engineering"
+       click_link "Edit"
+       page.should have_content("Add a teaching assistant")
+       click_link "Add a teaching assistant"
+       puts page.body
+     end
+
+   end
+
 
 end
